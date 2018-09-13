@@ -54,6 +54,16 @@ class DatasetBuilder(object):
         num_clusters=[2],
     )
 
+    KITTI_TEST_PROJECTION = KittiDatasetConfig(
+        name="kitti",
+        data_split="test",
+        data_split_dir="projection",
+        has_labels=False,
+        cluster_split="train",
+        classes=["Car"],
+        num_clusters=[2],
+    )
+
     KITTI_TRAINVAL = KittiDatasetConfig(
         name="kitti",
         data_split="trainval",

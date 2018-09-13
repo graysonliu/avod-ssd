@@ -19,7 +19,7 @@ import avod.protos.kitti_utils_pb2
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='avod/protos/kitti_dataset.proto',
   package='avod.protos',
-  serialized_pb=_b('\n\x1f\x61vod/protos/kitti_dataset.proto\x12\x0b\x61vod.protos\x1a\x1d\x61vod/protos/kitti_utils.proto\"\xcb\x02\n\x12KittiDatasetConfig\x12\x13\n\x04name\x18\x01 \x01(\t:\x05kitti\x12#\n\x0b\x64\x61taset_dir\x18\x02 \x01(\t:\x0e~/Kitti/object\x12\x19\n\ndata_split\x18\x03 \x01(\t:\x05train\x12 \n\x0e\x64\x61ta_split_dir\x18\x04 \x01(\t:\x08training\x12\x18\n\nhas_labels\x18\x05 \x01(\x08:\x04true\x12\x1c\n\rcluster_split\x18\x06 \x01(\t:\x05train\x12\x0f\n\x07\x63lasses\x18\x07 \x03(\t\x12\x14\n\x0cnum_clusters\x18\x08 \x03(\x05\x12\x12\n\nbev_source\x18\t \x02(\t\x12\x10\n\x08\x61ug_list\x18\n \x03(\t\x12\x39\n\x12kitti_utils_config\x18\x14 \x01(\x0b\x32\x1d.avod.protos.KittiUtilsConfig')
+  serialized_pb=_b('\n\x1f\x61vod/protos/kitti_dataset.proto\x12\x0b\x61vod.protos\x1a\x1d\x61vod/protos/kitti_utils.proto\"\xd5\x02\n\x12KittiDatasetConfig\x12\x13\n\x04name\x18\x01 \x01(\t:\x05kitti\x12-\n\x0b\x64\x61taset_dir\x18\x02 \x01(\t:\x18/mnt/Inside/Kitti/object\x12\x19\n\ndata_split\x18\x03 \x01(\t:\x05train\x12 \n\x0e\x64\x61ta_split_dir\x18\x04 \x01(\t:\x08training\x12\x18\n\nhas_labels\x18\x05 \x01(\x08:\x04true\x12\x1c\n\rcluster_split\x18\x06 \x01(\t:\x05train\x12\x0f\n\x07\x63lasses\x18\x07 \x03(\t\x12\x14\n\x0cnum_clusters\x18\x08 \x03(\x05\x12\x12\n\nbev_source\x18\t \x02(\t\x12\x10\n\x08\x61ug_list\x18\n \x03(\t\x12\x39\n\x12kitti_utils_config\x18\x14 \x01(\x0b\x32\x1d.avod.protos.KittiUtilsConfig')
   ,
   dependencies=[avod.protos.kitti_utils_pb2.DESCRIPTOR,])
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -44,7 +44,7 @@ _KITTIDATASETCONFIG = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='dataset_dir', full_name='avod.protos.KittiDatasetConfig.dataset_dir', index=1,
       number=2, type=9, cpp_type=9, label=1,
-      has_default_value=True, default_value=_b("~/Kitti/object").decode('utf-8'),
+      has_default_value=True, default_value=_b("/mnt/Inside/Kitti/object").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -123,7 +123,7 @@ _KITTIDATASETCONFIG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=80,
-  serialized_end=411,
+  serialized_end=421,
 )
 
 _KITTIDATASETCONFIG.fields_by_name['kitti_utils_config'].message_type = avod.protos.kitti_utils_pb2._KITTIUTILSCONFIG

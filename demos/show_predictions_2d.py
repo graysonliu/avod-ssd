@@ -20,11 +20,10 @@ from avod.core import box_3d_encoder
 from avod.core import box_3d_projector
 from avod.core import anchor_projector
 
-
 BOX_COLOUR_SCHEME = {
-    'Car': '#00FF00',           # Green
-    'Pedestrian': '#00FFFF',    # Teal
-    'Cyclist': '#FFFF00'        # Yellow
+    'Car': '#FF0000',  # Green
+    'Pedestrian': '#0000FF',  # Teal
+    'Cyclist': '#FFFF00'  # Yellow
 }
 
 
@@ -40,12 +39,15 @@ def main():
     The prediction score and IoU with ground truth can be toggled on or off
     as well, shown as (score, IoU) above the detection.
     """
-    dataset_config = DatasetBuilder.copy_config(DatasetBuilder.KITTI_VAL)
+    # dataset_config = DatasetBuilder.copy_config(DatasetBuilder.KITTI_VAL)
+    dataset_config = DatasetBuilder.copy_config(DatasetBuilder.KITTI_TEST)
+    # dataset_config = DatasetBuilder.copy_config(DatasetBuilder.KITTI_TEST_PROJECTION)
 
     ##############################
     # Options
     ##############################
-    dataset_config.data_split = 'val'
+    # dataset_config.data_split = 'val'
+    dataset_config.data_split = 'test'
 
     fig_size = (10, 6.1)
 
@@ -57,7 +59,8 @@ def main():
 
     # Overwrite this to select a specific checkpoint
     global_step = None
-    checkpoint_name = 'avod_cars_example'
+    checkpoint_name = 'avod_ssd_cars_example'
+    # checkpoint_name = 'avod_people_example'
 
     # Drawing Toggles
     # Keep proposal drawing as False if visualizing AVOD-SSD
@@ -77,7 +80,7 @@ def main():
     save_empty_images = True
 
     draw_score = True
-    draw_iou = True
+    draw_iou = False
     ##############################
     # End of Options
     ##############################
@@ -87,13 +90,13 @@ def main():
 
     # Setup Paths
     predictions_dir = avod.root_dir() + \
-        '/data/outputs/' + checkpoint_name + '/predictions'
+                      '/data/outputs/' + checkpoint_name + '/predictions'
 
     proposals_and_scores_dir = predictions_dir + \
-        '/proposals_and_scores/' + dataset.data_split
+                               '/proposals_and_scores/' + dataset.data_split
 
     predictions_and_scores_dir = predictions_dir + \
-        '/final_predictions_and_scores/' + dataset.data_split
+                                 '/final_predictions_and_scores/' + dataset.data_split
 
     # Output images directories
     output_dir_base = predictions_dir + '/images_2d'
@@ -138,7 +141,7 @@ def main():
     # Rolling average array of times for time estimation
     avg_time_arr_length = 10
     last_times = np.repeat(time.time(), avg_time_arr_length) + \
-        np.arange(avg_time_arr_length)
+                 np.arange(avg_time_arr_length)
 
     for sample_idx in range(dataset.num_samples):
         # Estimate time remaining with 5 slowest times
@@ -151,11 +154,11 @@ def main():
 
         # Print progress and time remaining estimate
         sys.stdout.write('\rSaving {} / {}, Avg Time: {:.3f}s, '
-                         'Time Remaining: {:.2f}s'. format(
-                             sample_idx + 1,
-                             dataset.num_samples,
-                             avg_time,
-                             est_time_left))
+                         'Time Remaining: {:.2f}s'.format(
+            sample_idx + 1,
+            dataset.num_samples,
+            avg_time,
+            est_time_left))
         sys.stdout.flush()
 
         sample_name = dataset.sample_names[sample_idx]
@@ -167,7 +170,7 @@ def main():
         if draw_proposals_separate or draw_overlaid:
             # Load proposals from files
             proposals_file_path = proposals_and_scores_dir + \
-                "/{}/{}.txt".format(global_step, sample_name)
+                                  "/{}/{}.txt".format(global_step, sample_name)
             if not os.path.exists(proposals_file_path):
                 print('Sample {}: No proposals, skipping'.format(sample_name))
                 continue
@@ -193,8 +196,8 @@ def main():
         ##############################
         if draw_predictions_separate or draw_overlaid:
             predictions_file_path = predictions_and_scores_dir + \
-                "/{}/{}.txt".format(global_step,
-                                    sample_name)
+                                    "/{}/{}.txt".format(global_step,
+                                                        sample_name)
             if not os.path.exists(predictions_file_path):
                 continue
 
@@ -211,7 +214,6 @@ def main():
             # process predictions only if we have any predictions left after
             # masking
             if len(prediction_boxes_3d) > 0:
-
                 # Apply score mask
                 avod_score_mask = prediction_scores >= avod_score_threshold
                 prediction_boxes_3d = prediction_boxes_3d[avod_score_mask]
@@ -238,6 +240,8 @@ def main():
         else:
             gt_objects = []
 
+        gt_objects = []
+
         # Filter objects to desired difficulty
         filtered_gt_objs = dataset.kitti_utils.filter_labels(
             gt_objects, classes=gt_classes)
@@ -248,6 +252,11 @@ def main():
         image_path = dataset.get_rgb_image_path(sample_name)
         image = Image.open(image_path)
         image_size = image.size
+
+        velodyne_path = dataset.get_velodyne_path(sample_name)
+        velodyne_data = np.fromfile(velodyne_path, dtype=np.float32).reshape((-1, 4))
+        # Reflectance > 0
+        velodyne_data = velodyne_data[velodyne_data[:, 3] > 0, :]
 
         # Read the stereo calibration matrix for visualization
         stereo_calib = calib_utils.read_calibration(dataset.calib_dir,
@@ -262,7 +271,7 @@ def main():
                 proposal_boxes_3d)
 
             proposal_boxes, _ = anchor_projector.project_to_image_space(
-                    proposals_as_anchors, calib_p2, image_size)
+                proposals_as_anchors, calib_p2, image_size)
 
             num_of_proposals = proposal_boxes_3d.shape[0]
 
@@ -323,8 +332,8 @@ def main():
                     pred_fig, pred_2d_axes, pred_3d_axes = \
                         vis_utils.visualization(dataset.rgb_image_dir,
                                                 img_idx,
-                                                display=False,
-                                                fig_size=fig_size)
+                                                display=False
+                                                )
                     filename = pred_out_dir + '/' + sample_name + '.png'
                     plt.savefig(filename)
                     plt.close(pred_fig)
@@ -353,11 +362,12 @@ def main():
                 # Now only draw prediction boxes on images
                 # on a new figure handler
                 if draw_projected_2d_boxes:
-                    pred_fig, pred_2d_axes, pred_3d_axes = \
+                    pred_fig, pred_2d_axes, pred_3d_axes, pred_bev_axes = \
                         vis_utils.visualization(dataset.rgb_image_dir,
                                                 img_idx,
                                                 display=False,
-                                                fig_size=fig_size)
+                                                velodyne_data=velodyne_data
+                                                )
 
                     draw_predictions(filtered_gt_objs,
                                      calib_p2,
@@ -492,7 +502,7 @@ def draw_predictions(filtered_gt_objs,
         box_cls = gt_classes[int(pred_class_idx)]
         rect = patches.Rectangle((box_x1, box_y1),
                                  box_w, box_h,
-                                 linewidth=2,
+                                 linewidth=0.5,
                                  edgecolor=BOX_COLOUR_SCHEME[box_cls],
                                  facecolor='none')
 
@@ -502,7 +512,7 @@ def draw_predictions(filtered_gt_objs,
         vis_utils.draw_box_3d(pred_3d_axes, pred_obj, p_matrix,
                               show_orientation=draw_orientations_on_pred,
                               color_table=['#00FF00', 'y', 'r', 'w'],
-                              line_width=2,
+                              line_width=0.5,
                               double_line=False,
                               box_color=BOX_COLOUR_SCHEME[box_cls])
 
@@ -607,7 +617,6 @@ def draw_prediction_info(ax, x, y,
                          draw_score,
                          draw_iou,
                          gt_classes):
-
     label = ""
 
     if draw_score:
@@ -626,7 +635,7 @@ def draw_prediction_info(ax, x, y,
             verticalalignment='bottom',
             horizontalalignment='center',
             color=BOX_COLOUR_SCHEME[box_cls],
-            fontsize=10,
+            fontsize=3,
             fontweight='bold',
             path_effects=[
                 patheffects.withStroke(linewidth=2,
