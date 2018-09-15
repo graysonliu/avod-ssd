@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 import time
@@ -8,6 +9,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.patheffects as patheffects
+import matplotlib.transforms as transforms
 
 from wavedata.tools.core import calib_utils
 from wavedata.tools.obj_detection import obj_utils
@@ -256,7 +258,7 @@ def main():
         velodyne_path = dataset.get_velodyne_path(sample_name)
         velodyne_data = np.fromfile(velodyne_path, dtype=np.float32).reshape((-1, 4))
         # Reflectance > 0
-        velodyne_data = velodyne_data[velodyne_data[:, 3] > 0, :]
+        # velodyne_data = velodyne_data[velodyne_data[:, 3] > 0, :]
 
         # Read the stereo calibration matrix for visualization
         stereo_calib = calib_utils.read_calibration(dataset.calib_dir,
@@ -366,7 +368,8 @@ def main():
                         vis_utils.visualization(dataset.rgb_image_dir,
                                                 img_idx,
                                                 display=False,
-                                                velodyne_data=velodyne_data
+                                                velodyne_data=velodyne_data,
+                                                calib=stereo_calib
                                                 )
 
                     draw_predictions(filtered_gt_objs,
@@ -381,6 +384,13 @@ def main():
                                      draw_iou,
                                      gt_classes,
                                      draw_orientations_on_pred)
+
+                    draw_bev_predictions(num_of_predictions,
+                                         final_prediction_objs,
+                                         final_class_indices,
+                                         pred_bev_axes,
+                                         gt_classes)
+
                 else:
                     pred_fig, pred_3d_axes = \
                         vis_utils.visualize_single_plot(
@@ -640,6 +650,41 @@ def draw_prediction_info(ax, x, y,
             path_effects=[
                 patheffects.withStroke(linewidth=2,
                                        foreground='black')])
+
+
+def draw_bev_predictions(predictions_to_show,
+                         prediction_objs,
+                         prediction_class,
+                         pred_bev_axes,
+                         gt_classes):
+    for pred_idx in range(predictions_to_show):
+        pred_obj = prediction_objs[pred_idx]
+        pred_class_idx = prediction_class[pred_idx]
+
+        bbox_cx = pred_obj.t[0]
+        bbox_cy = pred_obj.t[2]
+        bbox_w = pred_obj.w
+        bbox_h = pred_obj.l
+        bbox_left = bbox_cx - bbox_w / 2
+        bbox_bottom = bbox_cy - bbox_h / 2
+
+        box_cls = gt_classes[int(pred_class_idx)]
+
+        t = transforms.Affine2D().rotate_around(bbox_cx, bbox_cy, -pred_obj.ry) + pred_bev_axes.transData
+
+        bbox = patches.Rectangle((bbox_left, bbox_bottom),
+                                 bbox_w, bbox_h,
+                                 linewidth=0.5,
+                                 edgecolor=BOX_COLOUR_SCHEME[box_cls],
+                                 # transform=t,
+                                 facecolor='none')
+        orientation = patches.FancyArrow(bbox_cx, bbox_cy, 4, 0,
+                                         width=0.1,
+                                         color=BOX_COLOUR_SCHEME[box_cls],
+                                         transform=t)
+
+        pred_bev_axes.add_patch(bbox)
+        pred_bev_axes.add_patch(orientation)
 
 
 if __name__ == '__main__':
