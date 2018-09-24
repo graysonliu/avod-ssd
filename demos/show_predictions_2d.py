@@ -331,9 +331,11 @@ def main():
                     obj.score = score
             else:
                 if save_empty_images:
-                    pred_fig, pred_2d_axes, pred_3d_axes = \
+                    pred_fig, pred_2d_axes, pred_3d_axes, pred_bev_axes = \
                         vis_utils.visualization(dataset.rgb_image_dir,
                                                 img_idx,
+                                                velodyne_data=velodyne_data,
+                                                calib=stereo_calib,
                                                 display=False
                                                 )
                     filename = pred_out_dir + '/' + sample_name + '.png'
